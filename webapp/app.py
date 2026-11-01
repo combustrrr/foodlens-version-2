@@ -99,6 +99,12 @@ def index():
     return send_from_directory(str(app.template_folder), "index.html")
 
 
+@app.get("/v2")
+@app.get("/v2/")
+def index_v2():
+    return send_from_directory(str(app.template_folder), "v2.html")
+
+
 @app.get("/about")
 def about():
     return send_from_directory(str(app.template_folder), "index.html")

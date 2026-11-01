@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#f4f7f8"/>
+  <meta name="description" content="Recognize dishes, explore likely ingredients, and review possible dietary concerns from a food photo."/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <title>FoodLens | Food recognition</title>
+  <link rel="stylesheet" href="/static/v2/style.css"/>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg"/>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<div class="app-shell">
+
+  <!-- Sidebar (desktop) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-mark" aria-hidden="true">FL</span>
+      <span>Food<span class="logo-accent">Lens</span></span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-page="scan">Recognise a dish</button>
+      <button class="nav-item" data-page="history">Scan history</button>
+      <button class="nav-item" data-page="profile">Food profile</button>
+      <button class="nav-item" data-page="evaluation">Model evaluation</button>
+      <button class="nav-item" data-page="about">About FoodLens</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="model-badge">Food recognition &amp; context</div>
+      <div class="classes-badge">101 dishes recognised</div>
+    </div>
+  </aside>
+
+  <!-- Phone column -->
+  <div class="phone-col">
+    <div class="app">
+      <header class="topbar">
+        <button class="icon-btn hamburger" id="btnMenu" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <span class="topbar-title" id="topbarTitle">Food recognition</span>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="btnBack" aria-label="Back">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </button>
+          <button class="viva-toggle" id="btnViva" type="button" aria-expanded="false" aria-controls="vivaPanel">
+            Scientific details
+          </button>
+          <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+            <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="icon-sun hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="main" id="main">
+        <!-- SCAN PAGE -->
+        <section class="page" id="page-scan">
+          <div class="hero-section">
+            <h1 class="hero-title">Food recognition</h1>
+            <p class="hero-subtitle">Upload a photo to identify a dish and review its ingredients.</p>
+          </div>
+
+          <aside class="capture-guidance" aria-label="Photo guidance">
+            <h2>A clear photo helps</h2>
+            <p>Use one main dish, good lighting, and a close view. You can review the image before analysis.</p>
+            <dl>
+              <div><dt>Supported files</dt><dd>JPEG, PNG, WebP</dd></div>
+              <div><dt>Image handling</dt><dd>Processed in memory</dd></div>
+              <div><dt>Recognition library</dt><dd>101 food classes</dd></div>
+            </dl>
+            <p class="capture-guidance-note">The model suggests matches. Confirm ingredients and allergens with the cook, restaurant, or product label.</p>
+          </aside>
+
+          <section class="viva-panel hidden" id="vivaPanel" aria-labelledby="vivaTitle">
+            <div class="viva-head">
+              <div>
+                <h2 id="vivaTitle">How the model analyses a plate</h2>
+              </div>
+              <span class="viva-ready" id="vivaReady">Checking service</span>
+            </div>
+            <ol class="viva-steps">
+              <li><b>Capture</b><span>Your food photo is processed in memory and is not saved by the server.</span></li>
+              <li><b>Prepare</b><span>Three carefully prepared views help FoodLens examine shape, colour, and texture.</span></li>
+              <li><b>Recognise</b><span>A fine-tuned EfficientNetB0 CNN extracts visual features learned from the Food-101 dataset.</span></li>
+              <li><b>Compare</b><span>Softmax scores from the original, flipped, and centre-cropped views are averaged into three matches.</span></li>
+              <li><b>Context</b><span>Uncertain results are flagged. Ingredient and dietary details come from a separate reference database.</span></li>
+            </ol>
+            <div class="model-facts">
+              <span><b id="factParameters">Loading</b> parameters</span>
+              <span><b id="factBackend">Loading</b> backend</span>
+              <span><b id="factThreshold">Loading</b> warning threshold</span>
+            </div>
+            <div class="inference-controls">
+              <label class="switch-row"><input type="checkbox" id="ttaToggle" checked/> Use three-view Test-Time Augmentation</label>
+              <label for="thresholdRange">Confidence warning threshold: <b id="thresholdValue">45%</b></label>
+              <input type="range" id="thresholdRange" min="20" max="80" value="45" step="5"/>
+            </div>
+            <p class="demo-tip"><strong>Best results:</strong> use a well-lit photo with one main dish. Always confirm ingredients and allergens with the restaurant, cook, or product label.</p>
+          </section>
+
+          <div class="scan-workspace">
+          <div class="upload-zone" id="uploadZone">
+            <div class="uz-icon" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V3m-4 4 4-4 4 4M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg></div>
+            <h2 class="uz-title">Add a food photo</h2>
+            <p class="uz-sub">Choose an image or use your camera to begin.</p>
+            <div class="uz-actions">
+              <button class="btn btn-secondary btn-lg" id="btnCamera">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <span>Use camera</span>
+              </button>
+              <button class="btn btn-primary btn-lg" id="btnGallery">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>Upload a photo</span>
+              </button>
+            </div>
+            <div class="uz-drop" id="dropZone">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Drag & drop an image here</span>
+            </div>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" hidden/>
+            <input type="file" id="galleryInput" accept="image/jpeg,image/png,image/webp" hidden/>
+          </div>
+
+          <div class="preview-card hidden" id="previewCard">
+            <div class="preview-header">
+              <span class="preview-label">Selected Image</span>
+              <button class="btn-icon-sm" id="btnClosePreview" aria-label="Close preview">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="preview-frame">
+              <img id="previewImg" alt="Food preview"/>
+            </div>
+            <div class="preview-actions">
+              <button class="btn btn-secondary" id="btnClear">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                <span>Clear</span>
+              </button>
+              <button class="btn btn-primary" id="btnScan">
+                <span class="btn-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  <span>Analyse photo</span>
+                </span>
+                <span class="btn-loader hidden"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="notice hidden" id="notice"></div>
+          </div>
+
+          <div class="results hidden" id="results">
+            <div class="results-header">
+              <h2 class="results-title">Analysis results</h2>
+              <span class="confidence-badge" id="confidenceBadge"></span>
+            </div>
+            <div class="inference-meta" id="inferenceMeta" aria-live="polite"></div>
+            <div class="ai-insight" id="aiInsight" aria-live="polite"></div>
+            <div class="guardrail-result hidden" id="guardrailResult" aria-live="polite"></div>
+
+            <div class="model-tools">
+              <div>
+                <h3>Inspect this prediction</h3>
+              </div>
+              <div class="model-tool-buttons">
+                <button class="btn btn-secondary btn-sm" id="btnGradcam" type="button">Show Grad-CAM</button>
+                <button class="btn btn-secondary btn-sm" id="btnCompareTta" type="button">Compare TTA</button>
+                <button class="btn btn-secondary btn-sm" id="btnDownloadReport" type="button">Download prediction report</button>
+              </div>
+              <p class="tool-status" id="modelToolStatus" aria-live="polite"></p>
+              <div class="gradcam-result hidden" id="gradcamResult">
+                <img id="gradcamImage" alt="Grad-CAM overlay showing image regions that influenced the model"/>
+                <p id="gradcamCaption"></p>
+              </div>
+              <div class="tta-comparison hidden" id="ttaComparison"></div>
+            </div>
+            
+            <div id="warnings"></div>
+
+            <div class="card predictions-card">
+              <h3 class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Likely dish matches
+              </h3>
+              <div id="topPredictions"></div>
+            </div>
+
+            <div class="card lead-card hidden" id="ingredientsCard">
+              <h3 class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                Food details
+              </h3>
+              <div class="meta-row" id="metaRow"></div>
+              <div class="ing-list" id="ingredientsList"></div>
+            </div>
+
+            <div class="card result-actions">
+              <div class="result-action-block">
+                <h3>Did the model identify this correctly?</h3>
+                <p>Corrections save labels and confidence. Photo sharing is optional and off by default.</p>
+                <div class="feedback-buttons">
+                  <button class="btn btn-secondary btn-sm" id="btnFeedbackCorrect" type="button">Yes, correct</button>
+                  <button class="btn btn-secondary btn-sm" id="btnFeedbackWrong" type="button">Choose correction</button>
+                </div>
+                <div class="feedback-form hidden" id="feedbackForm">
+                  <label for="feedbackClass">Actual dish</label>
+                  <select id="feedbackClass"></select>
+                  <label class="consent-check" for="shareFeedbackImage">
+                    <input id="shareFeedbackImage" type="checkbox">
+                    Include this photo in the reviewed training dataset
+                  </label>
+                  <button class="btn btn-primary btn-sm" id="btnFeedbackSubmit" type="button">Save correction</button>
+                </div>
+                <p class="feedback-status" id="feedbackStatus" aria-live="polite"></p>
+              </div>
+              <div class="result-action-block restaurant-block">
+                <h3>Try this dish nearby</h3>
+                <p>Open a location-aware Maps search and compare nearby restaurant ratings.</p>
+                <a class="btn btn-primary btn-sm" id="findNearby" href="#" target="_blank" rel="noopener noreferrer">Find nearby restaurants</a>
+              </div>
+            </div>
+
+            <button class="btn btn-secondary btn-block btn-lg" id="btnAgain">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              <span>Analyse another photo</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- HISTORY PAGE -->
+        <section class="page hidden" id="page-history">
+          <div class="history-header">
+            <h2 class="history-title">Scan history</h2>
+            <p class="history-subtitle">Your recent food scans, saved on this device.</p>
+          </div>
+          <div class="hist-actions">
+            <span class="hist-count" id="histCount"></span>
+            <button class="btn btn-sm btn-ghost" id="btnClearHist">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span>Clear all</span>
+            </button>
+          </div>
+          <div class="hist-list" id="historyList" aria-label="Saved food scans"></div>
+          <div class="empty-state hidden" id="histEmpty">
+            <h3>No scans yet</h3>
+            <p>Upload a food photo to save your first result here.</p>
+            <button class="btn btn-primary" id="btnDiscoverDish" type="button">Recognise a dish</button>
+          </div>
+        </section>
+
+        <!-- FOOD PROFILE PAGE -->
+        <section class="page hidden" id="page-profile">
+          <div class="profile-header">
+            <h2 class="about-title">Build your food profile</h2>
+            <p class="about-subtitle">Choose concerns FoodLens should flag after each scan. Your profile stays in this browser.</p>
+          </div>
+          <div class="profile-grid">
+            <section class="card profile-card">
+              <h3>Allergy concerns</h3>
+              <p>Select ingredients you want highlighted. This is a screening aid, not a medical safety check.</p>
+              <div class="choice-grid" id="allergyChoices">
+                <label><input type="checkbox" name="allergy" value="peanuts"/> Peanuts</label>
+                <label><input type="checkbox" name="allergy" value="nuts"/> Tree nuts</label>
+                <label><input type="checkbox" name="allergy" value="shellfish"/> Shellfish</label>
+                <label><input type="checkbox" name="allergy" value="fish"/> Fish</label>
+                <label><input type="checkbox" name="allergy" value="dairy"/> Dairy</label>
+                <label><input type="checkbox" name="allergy" value="egg"/> Egg</label>
+                <label><input type="checkbox" name="allergy" value="gluten"/> Gluten</label>
+                <label><input type="checkbox" name="allergy" value="soy"/> Soy</label>
+                <label><input type="checkbox" name="allergy" value="sesame"/> Sesame</label>
+              </div>
+            </section>
+            <section class="card profile-card">
+              <h3>Eating preferences</h3>
+              <p>FoodLens uses common ingredient keywords to flag likely conflicts.</p>
+              <div class="choice-grid compact" id="dietChoices">
+                <label><input type="checkbox" name="diet" value="vegan"/> Vegan</label>
+                <label><input type="checkbox" name="diet" value="vegetarian"/> Vegetarian</label>
+                <label><input type="checkbox" name="diet" value="keto"/> Keto-conscious</label>
+              </div>
+              <div class="profile-note">Recipe variations differ. Confirm every sensitive ingredient with the restaurant, cook, or product label.</div>
+            </section>
+          </div>
+          <div class="profile-savebar">
+            <span id="profileStatus" aria-live="polite">No profile saved yet.</span>
+            <button class="btn btn-primary" id="btnSaveProfile" type="button">Save food profile</button>
+          </div>
+        </section>
+
+        <!-- MODEL EVALUATION PAGE -->
+        <section class="page hidden" id="page-evaluation">
+          <div class="profile-header">
+            <h2 class="about-title">Model evaluation</h2>
+            <p class="about-subtitle" id="evaluationProvenance">Loading measured Food-101 evidence…</p>
+          </div>
+          <div class="evaluation-metrics" id="evaluationMetrics"></div>
+          <div class="evaluation-grid">
+            <section class="card evaluation-card">
+              <h3>Weakest classes</h3>
+              <p>Per-class accuracy on the official held-out test split.</p>
+              <div id="worstClasses"></div>
+            </section>
+            <section class="card evaluation-card">
+              <h3>Most confused pairs</h3>
+              <p>True labels most often predicted as another class.</p>
+              <div id="confusionPairs"></div>
+            </section>
+            <section class="card evaluation-card wide">
+              <h3>TTA ablation</h3>
+              <p>Measured accuracy and CPU-latency trade-off.</p>
+              <div class="table-scroll"><table id="ttaTable"><thead><tr><th>Configuration</th><th>Views</th><th>Latency</th><th>Top-1</th></tr></thead><tbody></tbody></table></div>
+            </section>
+            <section class="card calibration-card wide" id="calibrationCard"></section>
+          </div>
+        </section>
+
+        <!-- ABOUT PAGE -->
+        <section class="page hidden" id="page-about">
+          <div class="about-header">
+            <h2 class="about-title">About FoodLens</h2>
+            <p class="about-subtitle">Built for discovery, reviews, and more informed food choices</p>
+          </div>
+          <div class="card about-card">
+            <div class="feature-grid">
+              <div class="feature-item">
+                <div class="feature-content">
+                  <h3>Dish discovery</h3>
+                  <p>Compare three likely matches across 101 recognised dishes.</p>
+                </div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-content">
+                  <h3>Transfer learning</h3>
+                  <p>EfficientNetB0 starts with rich visual features and is fine-tuned for Food-101.</p>
+                </div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-content">
+                  <h3>Confidence-aware</h3>
+                  <p>See when the photo is unclear or two dishes look too similar.</p>
+                </div>
+              </div>
+              <div class="feature-item">
+                <div class="feature-content">
+                  <h3>Dietary context</h3>
+                  <p>Review estimated calories, common ingredients, and possible allergens.</p>
+                </div>
+              </div>
+            </div>
+            <div class="about-divider"></div>
+            <div class="model-story">
+              <h3>One CNN, three views, honest confidence</h3>
+              <p>FoodLens uses a fine-tuned <strong>EfficientNetB0 convolutional neural network</strong>. At inference time it evaluates the original image, a horizontal flip, and a centre crop sequentially, one view at a time, then averages their softmax probabilities.</p>
+              <p>The deployed model was evaluated on the held-out 25,250-image Food-101 test split: <strong>73.44% Top-1</strong> and <strong>88.21% Top-3</strong>. The food details panel is a deterministic lookup for the predicted class, not output generated by the network.</p>
+            </div>
+            <div class="disclaimer-card">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p class="disclaimer">Food-101 is a closed set. Images outside its 101 classes can still receive a prediction. Low-confidence and close-score warnings expose that uncertainty. Nutrition values are educational estimates, not medical advice.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer"><span>FoodLens</span><span>Food recognition. Educational guidance only.</span></footer>
+    </div>
+  </div>
+
+  <!-- Slide-in menu drawer -->
+  <div class="drawer-overlay hidden" id="drawerOverlay"></div>
+  <aside class="drawer hidden" id="drawer" aria-label="Menu drawer">
+    <div class="drawer-head">
+      <div class="drawer-logo">
+        <span class="logo-mark" aria-hidden="true">FL</span>
+        <span>Food<span class="logo-accent">Lens</span></span>
+      </div>
+      <button class="icon-btn" id="btnDrawerClose" aria-label="Close menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+    </div>
+    <nav class="nav drawer-nav">
+      <button class="nav-item active" data-page="scan">Recognise a dish</button>
+      <button class="nav-item" data-page="history">Scan history</button>
+      <button class="nav-item" data-page="profile">Food profile</button>
+      <button class="nav-item" data-page="evaluation">Model evaluation</button>
+      <button class="nav-item" data-page="about">About FoodLens</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="model-badge">Food recognition &amp; context</div>
+      <div class="classes-badge">101 dishes recognised</div>
+    </div>
+  </aside>
+
+  <!-- CAMERA MODAL -->
+  <div class="camera-modal hidden" id="cameraModal" role="dialog" aria-modal="true">
+    <div class="camera-panel">
+      <header class="camera-head">
+        <button class="icon-btn icon-btn-ghost" id="btnCamClose" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span>Back</span>
+        </button>
+        <h3>Take a photo</h3>
+        <button class="icon-btn" id="btnFlip" aria-label="Switch camera">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </header>
+      <div class="camera-stage" id="cameraStage">
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <div class="camera-overlay">
+          <span class="cam-hint" id="camHint">Center the dish, then tap the shutter</span>
+          <div class="focus-frame"></div>
+        </div>
+        <div class="shutter-row">
+          <button class="shutter" id="btnSnap" aria-label="Capture"><span></span></button>
+          <button class="btn btn-secondary camera-fallback hidden" id="btnCameraFallback" type="button">Choose a photo instead</button>
+        </div>
+        <div class="camera-msg hidden" id="cameraMsg"></div>
+      </div>
+    </div>
+    <input type="file" id="fallbackInput" accept="image/jpeg,image/png,image/webp" capture="environment" hidden/>
+  </div>
+</div>
+
+<script src="/static/script.js" defer></script>
+</body>
+</html>
+
+
